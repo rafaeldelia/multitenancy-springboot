@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
 
@@ -41,10 +42,17 @@ public class MsfinnerSessionController extends LeptonSessionController {
 
 	@Override
 	@PostMapping(value = "/loginTenancy")
-	public ResponseEntity<LoginResponse> doLogin(String lang, LeptonLoginRequest request) {
-		Integer intValue = Integer.valueOf(1);
-		MasterTenant masterTenant = masterTenantService.findByClientId(intValue);
-		loadCurrentDatabaseInstance(masterTenant.getDbName(), request.getEmail());
+	public ResponseEntity<LoginResponse> doLogin(@RequestParam(value = "lang", required = false) String lang,
+			LeptonLoginRequest request) {
+		
+		// identificar o dominio no Interceptor!
+		// domínio: localhost
+		// domínio: springer
+		// domínio: midea		
+		String dominio = "springer";
+		MasterTenant masterTenant = masterTenantService.findByClientId(4);		
+		loadCurrentDatabaseInstance(masterTenant.getDbName(), request.getEmail());		
+		
 		return super.doLogin(lang, request);
 	}
 

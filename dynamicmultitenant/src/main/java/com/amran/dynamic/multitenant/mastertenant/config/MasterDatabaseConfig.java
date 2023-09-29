@@ -53,11 +53,10 @@ public class MasterDatabaseConfig {
 		hikariDataSource.setDriverClassName(masterDbProperties.getDriverClassName());
 		hikariDataSource.setPoolName(masterDbProperties.getPoolName());
 		// HikariCP settings
-		//hikariDataSource.setMaximumPoolSize(masterDbProperties.getMaxPoolSize());
-		//hikariDataSource.setMinimumIdle(masterDbProperties.getMinIdle());
-		//hikariDataSource.setConnectionTimeout(masterDbProperties.getConnectionTimeout());
-		//hikariDataSource.setIdleTimeout(masterDbProperties.getIdleTimeout());
-		LOG.info("Setup of masterDataSource succeeded.");
+		hikariDataSource.setMaximumPoolSize(masterDbProperties.getMaxPoolSize());
+		hikariDataSource.setMinimumIdle(masterDbProperties.getMinIdle());
+		hikariDataSource.setConnectionTimeout(masterDbProperties.getConnectionTimeout());
+		hikariDataSource.setIdleTimeout(masterDbProperties.getIdleTimeout());
 		return hikariDataSource;
 	}
 

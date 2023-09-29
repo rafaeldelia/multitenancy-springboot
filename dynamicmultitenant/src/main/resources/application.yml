@@ -5,7 +5,7 @@ spring:
     pathmatch:
       matching-strategy: ANT_PATH_MATCHER
   application:
-    name: Finner's Bank
+    name: Corretora de Seguros
   banner:
     location: classpath:bann.txt
   mail:

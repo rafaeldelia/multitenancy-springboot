@@ -43,7 +43,7 @@ public class DataSourceBasedMultiTenantConnectionProviderImpl
 		// is empty. If it is then rescan master_tenant table for all tenant
 		if (dataSourcesMtApp.isEmpty()) {
 			List<MasterTenant> masterTenants = masterTenantRepository.findAll();
-			LOG.info("selectAnyDataSource() method call...Total tenants:" + masterTenants.size());
+			
 			for (MasterTenant masterTenant : masterTenants) {
 				dataSourcesMtApp.put(masterTenant.getDbName(),
 						DataSourceUtil.createAndConfigureDataSource(masterTenant));
@@ -57,10 +57,9 @@ public class DataSourceBasedMultiTenantConnectionProviderImpl
 		// If the requested tenant id is not present check for it in the master
 		// database 'master_tenant' table
 		tenantIdentifier = initializeTenantIfLost(tenantIdentifier);
+		
 		if (!this.dataSourcesMtApp.containsKey(tenantIdentifier)) {
 			List<MasterTenant> masterTenants = masterTenantRepository.findAll();
-			LOG.info("selectDataSource() method call...Tenant:" + tenantIdentifier + " Total tenants:"
-					+ masterTenants.size());
 			for (MasterTenant masterTenant : masterTenants) {
 				dataSourcesMtApp.put(masterTenant.getDbName(),
 						DataSourceUtil.createAndConfigureDataSource(masterTenant));
@@ -69,7 +68,6 @@ public class DataSourceBasedMultiTenantConnectionProviderImpl
 		// check again if tenant exist in map after rescan master_db, if not, throw
 		// UsernameNotFoundException
 		if (!this.dataSourcesMtApp.containsKey(tenantIdentifier)) {
-			LOG.warn("Trying to get tenant:" + tenantIdentifier + " which was not found in master db after rescan");
 			throw new RuntimeException(
 					String.format("Tenant not found after rescan, " + " tenant=%s", tenantIdentifier));
 		}

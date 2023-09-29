@@ -3,10 +3,7 @@ package com.amran.dynamic.multitenant.tenant.config;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.persistence.EntityManagerFactory;
-
-import org.hibernate.MultiTenancyStrategy;
-import org.hibernate.cfg.Environment;
+import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.context.spi.CurrentTenantIdentifierResolver;
 import org.hibernate.engine.jdbc.connections.spi.MultiTenantConnectionProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -21,13 +18,17 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import jakarta.persistence.EntityManagerFactory;
+
 /**
  * @author Md. Amran Hossain
  */
 @Configuration
 @EnableTransactionManagement
-@ComponentScan(basePackages = { "com.amran.dynamic.multitenant.tenant.repository", "com.amran.dynamic.multitenant.tenant.entity" })
-@EnableJpaRepositories(basePackages = { "com.amran.dynamic.multitenant.tenant.repository",
+@ComponentScan(basePackages = { "com.amran.dynamic.multitenant.tenant.repository", "com.arlepton.apis.framework",
+		"com.amran.dynamic.multitenant.tenant.entity" })
+@EnableJpaRepositories(basePackages = { "com.arlepton.apis.framework",
+		"com.amran.dynamic.multitenant.tenant.repository",
 		"com.amran.dynamic.multitenant.tenant.service" }, entityManagerFactoryRef = "tenantEntityManagerFactory", transactionManagerRef = "tenantTransactionManager")
 public class TenantDatabaseConfig {
 
@@ -37,7 +38,8 @@ public class TenantDatabaseConfig {
 	}
 
 	@Bean(name = "tenantTransactionManager")
-	public JpaTransactionManager transactionManager(@Qualifier("tenantEntityManagerFactory") EntityManagerFactory tenantEntityManager) {
+	public JpaTransactionManager transactionManager(
+			@Qualifier("tenantEntityManagerFactory") EntityManagerFactory tenantEntityManager) {
 		JpaTransactionManager transactionManager = new JpaTransactionManager();
 		transactionManager.setEntityManagerFactory(tenantEntityManager);
 		return transactionManager;
@@ -66,8 +68,9 @@ public class TenantDatabaseConfig {
 	}
 
 	/**
-	 * Creates the entity manager factory bean which is required to access the JPA functionalities provided by the JPA persistence provider,
-	 * i.e. Hibernate in this case.
+	 * Creates the entity manager factory bean which is required to access the JPA
+	 * functionalities provided by the JPA persistence provider, i.e. Hibernate in
+	 * this case.
 	 *
 	 * @param connectionProvider
 	 * @param tenantResolver
@@ -80,17 +83,16 @@ public class TenantDatabaseConfig {
 			@Qualifier("currentTenantIdentifierResolver") CurrentTenantIdentifierResolver tenantResolver) {
 		LocalContainerEntityManagerFactoryBean emfBean = new LocalContainerEntityManagerFactoryBean();
 		// All tenant related entities, repositories and service classes must be scanned
-		emfBean.setPackagesToScan("com.amran.dynamic.multitenant");
+		emfBean.setPackagesToScan(new String[] { "com.arlepton.apis.framework", "com.amran.dynamic.multitenant" });
 		emfBean.setJpaVendorAdapter(jpaVendorAdapter());
 		emfBean.setPersistenceUnitName("tenantdb-persistence-unit");
 		Map<String, Object> properties = new HashMap<>();
-		properties.put(Environment.MULTI_TENANT, MultiTenancyStrategy.DATABASE);
-		properties.put(Environment.MULTI_TENANT_CONNECTION_PROVIDER, connectionProvider);
-		properties.put(Environment.MULTI_TENANT_IDENTIFIER_RESOLVER, tenantResolver);
-		properties.put(Environment.DIALECT, "org.hibernate.dialect.PostgreSQLDialect");
-		properties.put(Environment.SHOW_SQL, true);
-		properties.put(Environment.FORMAT_SQL, true);
-		properties.put(Environment.HBM2DDL_AUTO, "none");
+		properties.put(AvailableSettings.MULTI_TENANT_CONNECTION_PROVIDER, connectionProvider);
+		properties.put(AvailableSettings.MULTI_TENANT_IDENTIFIER_RESOLVER, tenantResolver);
+		properties.put(AvailableSettings.DIALECT, "org.hibernate.dialect.PostgreSQLDialect");
+		properties.put(AvailableSettings.SHOW_SQL, true);
+		properties.put(AvailableSettings.FORMAT_SQL, true);
+		properties.put(AvailableSettings.HBM2DDL_AUTO, "none");
 		emfBean.setJpaPropertyMap(properties);
 		return emfBean;
 	}

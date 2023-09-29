@@ -2,13 +2,14 @@ package com.amran.dynamic.multitenant.mastertenant.config;
 
 import java.util.Properties;
 
-import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
+import org.hibernate.cfg.AvailableSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -24,13 +25,17 @@ import com.amran.dynamic.multitenant.mastertenant.entity.MasterTenant;
 import com.amran.dynamic.multitenant.mastertenant.repository.MasterTenantRepository;
 import com.zaxxer.hikari.HikariDataSource;
 
+import jakarta.persistence.EntityManagerFactory;
+
 /**
  * @author Md. Amran Hossain
  */
 @Configuration
 @EnableTransactionManagement
-@EnableJpaRepositories(basePackages = { "com.amran.dynamic.multitenant.mastertenant.entity",
-		"com.amran.dynamic.multitenant.mastertenant.repository" }, entityManagerFactoryRef = "masterEntityManagerFactory", transactionManagerRef = "masterTransactionManager")
+
+@EnableJpaRepositories(basePackages = { "com.arlepton.apis.framework",
+		"com.amran.dynamic.multitenant" }, entityManagerFactoryRef = "masterEntityManagerFactory", transactionManagerRef = "masterTransactionManager")
+@EntityScan(basePackages = { "com.arlepton.apis.framework", "com.amran.dynamic.multitenant" })
 public class MasterDatabaseConfig {
 
 	private static final Logger LOG = LoggerFactory.getLogger(MasterDatabaseConfig.class);
@@ -48,10 +53,10 @@ public class MasterDatabaseConfig {
 		hikariDataSource.setDriverClassName(masterDbProperties.getDriverClassName());
 		hikariDataSource.setPoolName(masterDbProperties.getPoolName());
 		// HikariCP settings
-		hikariDataSource.setMaximumPoolSize(masterDbProperties.getMaxPoolSize());
-		hikariDataSource.setMinimumIdle(masterDbProperties.getMinIdle());
-		hikariDataSource.setConnectionTimeout(masterDbProperties.getConnectionTimeout());
-		hikariDataSource.setIdleTimeout(masterDbProperties.getIdleTimeout());
+		//hikariDataSource.setMaximumPoolSize(masterDbProperties.getMaxPoolSize());
+		//hikariDataSource.setMinimumIdle(masterDbProperties.getMinIdle());
+		//hikariDataSource.setConnectionTimeout(masterDbProperties.getConnectionTimeout());
+		//hikariDataSource.setIdleTimeout(masterDbProperties.getIdleTimeout());
 		LOG.info("Setup of masterDataSource succeeded.");
 		return hikariDataSource;
 	}
@@ -63,8 +68,8 @@ public class MasterDatabaseConfig {
 		// Set the master data source
 		em.setDataSource(masterDataSource());
 		// The master tenant entity and repository need to be scanned
-		em.setPackagesToScan(
-				new String[] { MasterTenant.class.getPackage().getName(), MasterTenantRepository.class.getPackage().getName() });
+		em.setPackagesToScan(new String[] { MasterTenant.class.getPackage().getName(),
+				MasterTenantRepository.class.getPackage().getName() });
 		// Setting a name for the persistence unit as Spring sets it as
 		// 'default' if not defined
 		em.setPersistenceUnitName("masterdb-persistence-unit");
@@ -78,7 +83,8 @@ public class MasterDatabaseConfig {
 	}
 
 	@Bean(name = "masterTransactionManager")
-	public JpaTransactionManager masterTransactionManager(@Qualifier("masterEntityManagerFactory") EntityManagerFactory emf) {
+	public JpaTransactionManager masterTransactionManager(
+			@Qualifier("masterEntityManagerFactory") EntityManagerFactory emf) {
 		JpaTransactionManager transactionManager = new JpaTransactionManager();
 		transactionManager.setEntityManagerFactory(emf);
 		return transactionManager;
@@ -92,10 +98,10 @@ public class MasterDatabaseConfig {
 	// Hibernate configuration properties
 	private Properties hibernateProperties() {
 		Properties properties = new Properties();
-		properties.put(org.hibernate.cfg.Environment.DIALECT, "org.hibernate.dialect.PostgreSQLDialect");
-		properties.put(org.hibernate.cfg.Environment.SHOW_SQL, true);
-		properties.put(org.hibernate.cfg.Environment.FORMAT_SQL, true);
-		properties.put(org.hibernate.cfg.Environment.HBM2DDL_AUTO, "none");
+		properties.put(AvailableSettings.DIALECT, "org.hibernate.dialect.PostgreSQLDialect");
+		properties.put(AvailableSettings.SHOW_SQL, true);
+		properties.put(AvailableSettings.FORMAT_SQL, true);
+		properties.put(AvailableSettings.HBM2DDL_AUTO, "none");
 		return properties;
 	}
 }

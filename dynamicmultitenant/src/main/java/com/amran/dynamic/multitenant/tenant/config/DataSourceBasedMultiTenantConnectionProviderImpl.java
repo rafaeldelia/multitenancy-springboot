@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import com.amran.dynamic.multitenant.mastertenant.config.DBContextHolder;
 import com.amran.dynamic.multitenant.mastertenant.entity.MasterTenant;
@@ -23,7 +22,8 @@ import com.amran.dynamic.multitenant.util.DataSourceUtil;
  * @author Md. Amran Hossain
  */
 @Configuration
-public class DataSourceBasedMultiTenantConnectionProviderImpl extends AbstractDataSourceBasedMultiTenantConnectionProviderImpl {
+public class DataSourceBasedMultiTenantConnectionProviderImpl
+		extends AbstractDataSourceBasedMultiTenantConnectionProviderImpl {
 
 	private static final Logger LOG = LoggerFactory.getLogger(DataSourceBasedMultiTenantConnectionProviderImpl.class);
 
@@ -45,7 +45,8 @@ public class DataSourceBasedMultiTenantConnectionProviderImpl extends AbstractDa
 			List<MasterTenant> masterTenants = masterTenantRepository.findAll();
 			LOG.info("selectAnyDataSource() method call...Total tenants:" + masterTenants.size());
 			for (MasterTenant masterTenant : masterTenants) {
-				dataSourcesMtApp.put(masterTenant.getDbName(), DataSourceUtil.createAndConfigureDataSource(masterTenant));
+				dataSourcesMtApp.put(masterTenant.getDbName(),
+						DataSourceUtil.createAndConfigureDataSource(masterTenant));
 			}
 		}
 		return this.dataSourcesMtApp.values().iterator().next();
@@ -58,22 +59,30 @@ public class DataSourceBasedMultiTenantConnectionProviderImpl extends AbstractDa
 		tenantIdentifier = initializeTenantIfLost(tenantIdentifier);
 		if (!this.dataSourcesMtApp.containsKey(tenantIdentifier)) {
 			List<MasterTenant> masterTenants = masterTenantRepository.findAll();
-			LOG.info("selectDataSource() method call...Tenant:" + tenantIdentifier + " Total tenants:" + masterTenants.size());
+			LOG.info("selectDataSource() method call...Tenant:" + tenantIdentifier + " Total tenants:"
+					+ masterTenants.size());
 			for (MasterTenant masterTenant : masterTenants) {
-				dataSourcesMtApp.put(masterTenant.getDbName(), DataSourceUtil.createAndConfigureDataSource(masterTenant));
+				dataSourcesMtApp.put(masterTenant.getDbName(),
+						DataSourceUtil.createAndConfigureDataSource(masterTenant));
 			}
 		}
-		// check again if tenant exist in map after rescan master_db, if not, throw UsernameNotFoundException
+		// check again if tenant exist in map after rescan master_db, if not, throw
+		// UsernameNotFoundException
 		if (!this.dataSourcesMtApp.containsKey(tenantIdentifier)) {
 			LOG.warn("Trying to get tenant:" + tenantIdentifier + " which was not found in master db after rescan");
-			throw new UsernameNotFoundException(String.format("Tenant not found after rescan, " + " tenant=%s", tenantIdentifier));
+			throw new RuntimeException(
+					String.format("Tenant not found after rescan, " + " tenant=%s", tenantIdentifier));
 		}
 		return this.dataSourcesMtApp.get(tenantIdentifier);
 	}
 
 	private String initializeTenantIfLost(String tenantIdentifier) {
-		if (tenantIdentifier != DBContextHolder.getCurrentDb()) {
-			tenantIdentifier = DBContextHolder.getCurrentDb();
+		String currentDb = DBContextHolder.getCurrentDb();
+		if(currentDb == null) {
+			return tenantIdentifier;
+		}
+		if (!tenantIdentifier.equals(currentDb)) {
+			tenantIdentifier = currentDb;
 		}
 		return tenantIdentifier;
 	}

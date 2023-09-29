@@ -1,18 +1,17 @@
 package com.amran.dynamic.multitenant.controller;
 
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
 
@@ -20,16 +19,16 @@ import com.amran.dynamic.multitenant.mastertenant.config.DBContextHolder;
 import com.amran.dynamic.multitenant.mastertenant.entity.MasterTenant;
 import com.amran.dynamic.multitenant.mastertenant.service.MasterTenantService;
 import com.amran.dynamic.multitenant.security.UserTenantInformation;
-import com.amran.dynamic.multitenant.tenant.service.ProductService;
-import com.arlepton.apis.framework.annotation.ARLeptonRoles;
-import com.arlepton.apis.framework.constants.ConstantsFunctionality;
+import com.arlepton.apis.framework.controller.LeptonSessionController;
+import com.arlepton.apis.framework.request.LeptonLoginRequest;
+import com.arlepton.apis.framework.response.LoginResponse;
 
-/**
- * @author Md. Amran Hossain | amrancse930@gmail.com
- */
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
-@RequestMapping("/api/product")
-public class ProductController {
+@RequestMapping("/session")
+@Tag(name = "Sessions", description = "Sessions for users - login logout")
+public class MsfinnerSessionController extends LeptonSessionController {
 
 	private Map<String, String> mapValue = new HashMap<>();
 	private Map<String, String> userDbMap = new HashMap<>();
@@ -38,33 +37,24 @@ public class ProductController {
 	MasterTenantService masterTenantService;
 
 	@Autowired
-	private ProductService productService;
+	ApplicationContext applicationContext;
 
-	//@ARLeptonRoles(functionality = ConstantsFunctionality.NAME_GET_USERS)
-	@GetMapping("/all")
-	public ResponseEntity<Object> getAllProduct(@RequestHeader(value = "apiKey", required = true) String apiKey,
-			@RequestParam(value = "lang", required = false) String lang) {
-		
-		// receber o apiKey e identificar o email.
-		
+	@Override
+	@PostMapping(value = "/loginTenancy")
+	public ResponseEntity<LoginResponse> doLogin(String lang, LeptonLoginRequest request) {
 		Integer intValue = Integer.valueOf(1);
 		MasterTenant masterTenant = masterTenantService.findByClientId(intValue);
-		loadCurrentDatabaseInstance(masterTenant.getDbName(), "rafael.delia@arphoenix.com.br");
-		return new ResponseEntity<>(productService.getAllProduct(), HttpStatus.OK);
+		loadCurrentDatabaseInstance(masterTenant.getDbName(), request.getEmail());
+		return super.doLogin(lang, request);
 	}
 
-	//@ARLeptonRoles(functionality = ConstantsFunctionality.NAME_GET_USERS)
-	@GetMapping("/allPageable")
-	public ResponseEntity<Object> getAllProductPageable(@RequestHeader(value = "apiKey", required = true) String apiKey,
-			@RequestParam(value = "lang", required = false) String lang) {
-		
-		// receber o apiKey e identificar o email.
-		
-		Integer intValue = Integer.valueOf(1);
-		MasterTenant masterTenant = masterTenantService.findByClientId(intValue);
-		loadCurrentDatabaseInstance(masterTenant.getDbName(), "rafael.delia@arphoenix.com.br");
-		Pageable pageable = PageRequest.of(0, 10);
-		return new ResponseEntity<>(productService.getAllProduct(pageable), HttpStatus.OK);
+	@GetMapping("/logout")
+	public ResponseEntity<?> logoutFromApp(Principal principal) {
+		UserTenantInformation userCharityInfo = applicationContext.getBean(UserTenantInformation.class);
+		Map<String, String> map = userCharityInfo.getMap();
+		map.remove(principal.getName());
+		userCharityInfo.setMap(map);
+		return ResponseEntity.ok(HttpStatus.OK);
 	}
 
 	private void loadCurrentDatabaseInstance(String databaseName, String userName) {

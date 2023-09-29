@@ -1,0 +1,15 @@
+{{- if .Values.configmap.create -}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.configmap.name }}
+  labels:
+    app: {{ .Values.app.name }}
+    group: {{ .Values.app.group }}
+    release: {{ .Release.Name }}
+data:
+  DB_URL: {{ .Values.configmap.data.dbUrl | quote }}
+  DB_USERNAME: {{ .Values.configmap.data.dbUsername | quote }}
+  DB_PASSWORD: {{ .Values.configmap.data.dbPassword | quote }}
+{{- end -}}

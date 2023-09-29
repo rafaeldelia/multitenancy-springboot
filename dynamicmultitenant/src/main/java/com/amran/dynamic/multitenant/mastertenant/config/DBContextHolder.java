@@ -5,6 +5,9 @@ package com.amran.dynamic.multitenant.mastertenant.config;
  */
 public class DBContextHolder {
 
+	private DBContextHolder() {
+	}
+
 	private static final ThreadLocal<String> contextHolder = new ThreadLocal<>();
 
 	public static void setCurrentDb(String dbType) {
